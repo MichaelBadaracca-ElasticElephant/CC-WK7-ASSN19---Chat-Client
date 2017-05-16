@@ -1,0 +1,28 @@
+Create a chat server and client
+
+People should be able to hit a server endpoint to post chats to a common chatroom
+
+Building the backend
+    - create a get endpoint to take in new chats and append them to the chatroom's chat
+    - each user should have their own session or ability to login
+        - create an authentication endpoint
+
+    - user's chats
+            should include their username
+            time of chat
+            content of the chat
+
+Building front-endpoint
+    - create a chat page
+        - place to show chats
+            - shows username and timestamp
+            - ability to delete chats?
+        - place to enter chats
+            - sends chat and clears when you press enter
+
+    - create a section to show if logged in
+    - create a login page
+        - fields to enter username, password, and confirm password
+        
+        
+	
