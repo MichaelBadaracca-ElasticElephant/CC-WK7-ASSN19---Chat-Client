@@ -1,11 +1,21 @@
 //import modules
 var express = require("express");
+var bodyParser = require("body-parser");
 
 //Global Variables
 var PORT = 8000;
 var app = express();
+var globalChat = "";
 
 app.use(express.static("public"));
+//app.use(bodyParser.json());
+//This is important to be able to get the body of a post request
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
+
+//QUESTION: How to prevent cross site scripting?
 
 //initialize express
 //use body parser
@@ -17,6 +27,15 @@ app.use(express.static("public"));
 //set up authentication check
 
 //set up route to send chats to common thread
+app.post("/api/sendChat", function (req, res) {
+    //add new chat to global chat
+    var newChat = req.body.chat;
+    //QUESTION: adding the newline character does not create a new line in the html
+    globalChat += newChat + "\n";
+    res.status(200);
+    res.send(globalChat);
+});
+
 
 //set up 404 route
 
