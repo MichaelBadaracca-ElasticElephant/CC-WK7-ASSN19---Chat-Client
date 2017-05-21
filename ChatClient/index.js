@@ -1,11 +1,28 @@
 //import modules
 var express = require("express");
 var bodyParser = require("body-parser");
+var expressSession = require("express-session");
+var appSecrets = require("./secrets.js")
+var mongodb = require("mongodb")
 
 //Global Variables
 var PORT = 8000;
 var app = express();
 var globalChat = "";
+var db;
+
+// Connect to mongo (make sure mongo is running!)
+mongodb.MongoClient.connect('mongodb://localhost', function (err, database) {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    console.log("Connected to Database");
+    db = database;
+
+    // now, start the server.
+    startListening();
+});
 
 app.use(express.static("public"));
 //app.use(bodyParser.json());
@@ -13,6 +30,21 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
+//Sets up the app to create a session for each request
+app.use(expressSession({
+    secret: appSecrets.secrets.sessionSecret,
+    resave: false,
+    saveUninitialized: true
+}));
+
+//function isUserAuthenticated(req,res) {
+//    if(req.session)
+//}
+
+app.post("api/createUser", function (req,res) {
+    //create the user's session'
+})
 
 
 //QUESTION: How to prevent cross site scripting?
@@ -55,6 +87,8 @@ app.use(function (err, req, res, next) {
 
 //setup port
 
-app.listen(PORT, function () {
-    console.log(`Server running on port ${PORT}`);
-})
+function startListening() {
+    app.listen(PORT, function () {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
