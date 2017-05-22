@@ -24,7 +24,6 @@ mongodb.MongoClient.connect('mongodb://localhost', function (err, database) {
     startListening();
 });
 
-app.use(express.static("public"));
 //app.use(bodyParser.json());
 //This is important to be able to get the body of a post request
 app.use(bodyParser.urlencoded({
@@ -38,27 +37,91 @@ app.use(expressSession({
     saveUninitialized: true
 }));
 
-//function isUserAuthenticated(req,res) {
-//    if(req.session)
-//}
-
-app.post("api/createUser", function (req,res) {
-    //create the user's session'
+app.get("/login", function (req,res,next) {
+    console.log("Login");
+    res.status(200);
+    res.sendFile("/public/login.html", { "root": __dirname });
 })
+
+app.post("/api/createUser", function (req, res) {
+    //see if user exists
+    var doesUserAlreadyExist;
+    db.collection("users").findOne({
+        username: req.body.username
+    }, function (err, user) {
+        if (err) {
+            return console.log(err);
+        }
+        if (user) {
+            doesUserAlreadyExist = true;
+        }else {
+            doesUserAlreadyExist = false;
+        }
+
+        if (!doesUserAlreadyExist) {
+            //create the user's session'
+            db.collection("users").insertOne({
+                username: req.body.username,
+                password: req.body.password
+
+            }, function (err,data) {
+                if (err) {
+                    console.log(err);
+                    res.status(500);
+                    res.send('error inserting new user');
+                    return;
+                }
+                res.status(200);
+                res.send("User account successfully created");
+            })
+        } else {
+            res.status(200);
+            res.send("User already exists. Please try a different username")
+        }
+    })
+})
+app.post("/api/login", function (req, res) {
+    console.log("Hit Login Endpoint");
+    //look up user in db and see if information matches
+    db.collection("users").findOne({
+        username: req.body.username,
+        password: req.body.password
+    }, function (err,data) {
+        if (err) {
+            console.log(err);
+            res.status(500);
+            res.send("500 - Internal Server Error");
+        } 
+        if (data) {
+            //log in session
+            req.session.user = {
+                _id: data._id,
+                username: data.username
+            }
+            res.status(200);
+            res.send("Welcome " + data.username);
+
+            //res.sendFile("/public/index.html", { "root": __dirname });
+            //return res.redirect("/public/index.html");
+        } else {
+            res.status(200);
+            res.send("Username or password is invalid");
+        }
+    })
+});
+app.use(express.static("public"));
+//app.use(isUserAuthenticated, express.static("public"));
+
+
+
+
+
+
+
 
 
 //QUESTION: How to prevent cross site scripting?
 
-//initialize express
-//use body parser
-
-//set up route to get general files
-    //will need this to serve up an index.html
-    //will need this to serve up a login page
-
-//set up authentication check
-
-//set up route to send chats to common thread
 app.post("/api/sendChat", function (req, res) {
     //add new chat to global chat
     var newChat = req.body.chat;
@@ -91,4 +154,16 @@ function startListening() {
     app.listen(PORT, function () {
         console.log(`Server running on port ${PORT}`);
     });
+}
+
+function isUserAuthenticated(req, res, next) {
+    console.log("Authentication Check");
+
+    if (!req.session || !req.session.user) {
+        console.log("User is not authenticated");
+        res.redirect("/login");
+    } else {
+        next();
+    }
+
 }

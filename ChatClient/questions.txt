@@ -1,0 +1,2 @@
+I tried redirecting to login page when not authenticated
+This worked but, I could only send the login page and the script and css resources for it would not load (because I told it not to). I included them inline, but houw could I get around that?
