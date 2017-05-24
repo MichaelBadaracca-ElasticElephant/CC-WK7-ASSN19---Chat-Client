@@ -43,6 +43,18 @@ app.get("/login", function (req,res,next) {
     res.sendFile("/public/login.html", { "root": __dirname });
 })
 
+app.get("/api/whois", function (req,res) {
+    console.log("whois");
+    if (!req.session || !req.session.user) {
+        console.log("User is not authenticated");
+        res.redirect("/login");
+    } else {
+        console.log(req.session.user.username + " has been authenticated");
+        res.status(200);
+        res.send(req.session.user.username);
+    }
+});
+
 app.post("/api/createUser", function (req, res) {
     //see if user exists
     var doesUserAlreadyExist;
@@ -80,45 +92,47 @@ app.post("/api/createUser", function (req, res) {
         }
     })
 })
+
 app.post("/api/login", function (req, res) {
     console.log("Hit Login Endpoint");
     //look up user in db and see if information matches
     db.collection("users").findOne({
         username: req.body.username,
         password: req.body.password
-    }, function (err,data) {
+    }, function (err, data) {
         if (err) {
             console.log(err);
             res.status(500);
             res.send("500 - Internal Server Error");
-        } 
+        }
         if (data) {
             //log in session
             req.session.user = {
                 _id: data._id,
                 username: data.username
             }
+            console.log("User is authenticated");
             res.status(200);
-            res.send("Welcome " + data.username);
+            //res.send("Welcome " + data.username);
 
             //res.sendFile("/public/index.html", { "root": __dirname });
-            //return res.redirect("/public/index.html");
+            res.redirect("/home");
         } else {
             res.status(200);
             res.send("Username or password is invalid");
         }
     })
 });
-app.use(express.static("public"));
-//app.use(isUserAuthenticated, express.static("public"));
+//app.use(express.static("public"));
+app.use(isUserAuthenticated, express.static("public"));
 
 
 
-
-
-
-
-
+app.get("/home", function (req, res) {
+    console.log("Home");
+    res.status(200);
+    res.sendFile("/public/index.html", { "root": __dirname });
+})
 
 //QUESTION: How to prevent cross site scripting?
 
@@ -156,7 +170,7 @@ function startListening() {
     });
 }
 
-function isUserAuthenticated(req, res, next) {
+ function isUserAuthenticated(req, res, next) {
     console.log("Authentication Check");
 
     if (!req.session || !req.session.user) {

@@ -19,6 +19,7 @@
 </head>
 <body>
     <div class="container">
+        <div id="login-message"></div>
         <h1>Login</h1>
         <section class="form-group">
             <input id="enter-username" type="text" placeholder="enter username" />
@@ -31,7 +32,6 @@
     </div>
     <script>
         $(document).ready(function(){
-
             $("#login").click(function () {
                 var userLoginData = {
                     username: $("#enter-username").val(),

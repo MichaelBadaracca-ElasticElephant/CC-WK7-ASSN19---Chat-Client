@@ -1,5 +1,10 @@
 $(document).ready(function () {
 
+    //check to see if user is logged in
+    $.get("/api/whois", function (username) {
+        $("#login-message").text("Hello " + username + "!");
+    })
+
     $("#send-chat").click(function () {
         
 
