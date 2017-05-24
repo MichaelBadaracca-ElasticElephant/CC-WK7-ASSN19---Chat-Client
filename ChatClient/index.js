@@ -126,13 +126,11 @@ app.post("/api/login", function (req, res) {
 //app.use(express.static("public"));
 app.use(isUserAuthenticated, express.static("public"));
 
-
-
-app.get("/home", function (req, res) {
-    console.log("Home");
-    res.status(200);
-    res.sendFile("/public/index.html", { "root": __dirname });
-})
+//app.get("/home", function (req, res) {
+//    console.log("Home");
+//    res.status(200);
+//    res.sendFile("/public/index.html", { "root": __dirname });
+//})
 
 //QUESTION: How to prevent cross site scripting?
 
@@ -140,12 +138,34 @@ app.post("/api/sendChat", function (req, res) {
     //add new chat to global chat
     var newChat = req.body.chat;
     //QUESTION: adding the newline character does not create a new line in the html
-    globalChat += newChat + "\n";
+    //save chat to db
+    var chat = {
+        username: req.session.user.username,
+        content: req.body.chat,
+        timeStamp: Date()
+    };
+
+    db.collection("chats").insertOne(chat, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("added chat to database")
+        }
+    })
     res.status(200);
-    res.send(globalChat);
+    res.send(chat);
 });
 
-
+app.get("/api/getAllChats", function (req, res) {
+    console.log("got here");
+    db.collection("chats").find({}).toArray(function (err,data) {
+        if (err) {
+            console.log(err);
+        }
+        res.status(200);
+        res.send(data);
+    });
+})
 //set up 404 route
 
 app.use(function (req, res, next) {

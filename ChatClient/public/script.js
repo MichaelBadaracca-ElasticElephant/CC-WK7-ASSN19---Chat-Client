@@ -5,6 +5,17 @@ $(document).ready(function () {
         $("#login-message").text("Hello " + username + "!");
     })
 
+    $.get("/api/getAllChats", function (chats) {
+        for (chat of chats) {
+            displayChat(chat);
+        }
+    })
+
+    function displayChat(chat) {
+        var chatHtml = `<div class="chat"><span class = "username">${chat.username}:</span>${chat.content}<div class="timestamp">${chat.timeStamp}</div></div>`
+        $("#chat-thread").append(chatHtml);
+    }
+
     $("#send-chat").click(function () {
         
 
@@ -12,9 +23,8 @@ $(document).ready(function () {
         var chatContent = $("#enter-chat").val();
 
         //send chat to server
-        $.post("/api/sendChat/", { chat: chatContent }, function (chatThread) {
-            //update entire chat thread with response
-            $("#chat-thread").text(chatThread);
+        $.post("/api/sendChat/", { chat: chatContent }, function (chat) {
+            displayChat(chat);
         })
 
         //clear chat box

@@ -1,1 +1,9 @@
+.username{
+    font-weight:bold;
+}
 
+.timestamp{
+    font-style:italic;
+    color:grey;
+    font-size:.75em;
+}
