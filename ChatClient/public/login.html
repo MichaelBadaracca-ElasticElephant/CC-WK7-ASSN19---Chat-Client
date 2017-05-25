@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chatter Box</title>
+    <title>Login</title>
 
     <!--STYLES-->
 
@@ -37,10 +37,14 @@
                     username: $("#enter-username").val(),
                     password: $("#enter-password").val()
                 };
-                console.log(userLoginData);
 
                 $.post("/api/login", userLoginData, function (data) {
-                   $("#message").text(data)
+                    console.log(data);
+                    if (data == "success") {
+                        console.log()
+                        window.location = "../index.html"
+                    }
+                  $("#message").text(data)
                 })
             });
             $("#submit-user").click(function () {
@@ -48,7 +52,6 @@
                     username: $("#enter-username").val(),
                     password: $("#enter-password").val()
                 };
-                console.log(userLoginData);
 
                 $.post("/api/createUser", userLoginData, function (data) {
                     $("#message").text(data)

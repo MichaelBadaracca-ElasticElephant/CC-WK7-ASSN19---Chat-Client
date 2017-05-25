@@ -38,7 +38,6 @@ app.use(expressSession({
 }));
 
 app.get("/login", function (req,res,next) {
-    console.log("Login");
     res.status(200);
     res.sendFile("/public/login.html", { "root": __dirname });
 })
@@ -106,35 +105,30 @@ app.post("/api/login", function (req, res) {
             res.send("500 - Internal Server Error");
         }
         if (data) {
+        
             //log in session
             req.session.user = {
                 _id: data._id,
                 username: data.username
             }
-            console.log("User is authenticated");
+            
             res.status(200);
-            //res.send("Welcome " + data.username);
-
-            //res.sendFile("/public/index.html", { "root": __dirname });
-            res.redirect("/home");
+            res.send("success");
         } else {
             res.status(200);
             res.send("Username or password is invalid");
         }
     })
 });
-//app.use(express.static("public"));
-app.use(isUserAuthenticated, express.static("public"));
 
-//app.get("/home", function (req, res) {
-//    console.log("Home");
-//    res.status(200);
-//    res.sendFile("/public/index.html", { "root": __dirname });
-//})
+app.use(isUserAuthenticated, express.static("public"));
+//app.use(express.static("public"));
+//app.use(isUserAuthenticated, express.static("private"));
+
 
 //QUESTION: How to prevent cross site scripting?
 
-app.post("/api/sendChat", function (req, res) {
+app.post("/api/sendChat", isUserAuthenticated, function (req, res) {
     //add new chat to global chat
     var newChat = req.body.chat;
     //QUESTION: adding the newline character does not create a new line in the html
@@ -156,7 +150,7 @@ app.post("/api/sendChat", function (req, res) {
     res.send(chat);
 });
 
-app.get("/api/getAllChats", function (req, res) {
+app.get("/api/getAllChats", isUserAuthenticated, function (req, res) {
     console.log("got here");
     db.collection("chats").find({}).toArray(function (err,data) {
         if (err) {
