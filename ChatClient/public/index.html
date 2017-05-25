@@ -4,7 +4,6 @@
     <title>Chatter Box</title>
 
     <!--STYLES-->
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="./style.css" />
 
@@ -19,11 +18,14 @@
 </head>
 <body>
     <div class="container">
+        <!--Display username of user that is logged in-->
         <section>
             <div id="login-message"></div>
         </section>
         <h1>Chatter Box</h1>
+        <!--Chats are appended to the chat thread-->
         <p id="chat-thread"></p>
+        <!--Enter and submit chat-->
         <section class="form-group">
             <input id="enter-chat" type="text" placeholder="enter new chat"/>
             <button id="send-chat" class="btn btn-info">Send Chat</button>

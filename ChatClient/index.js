@@ -24,7 +24,6 @@ mongodb.MongoClient.connect('mongodb://localhost', function (err, database) {
     startListening();
 });
 
-//app.use(bodyParser.json());
 //This is important to be able to get the body of a post request
 app.use(bodyParser.urlencoded({
     extended: true
@@ -37,11 +36,13 @@ app.use(expressSession({
     saveUninitialized: true
 }));
 
+//Serves login page - can use without authentication
 app.get("/login", function (req,res,next) {
     res.status(200);
     res.sendFile("/public/login.html", { "root": __dirname });
 })
 
+//Sends back the username if they are authenticated otherwise redirects to login - can use without authentication
 app.get("/api/whois", function (req,res) {
     console.log("whois");
     if (!req.session || !req.session.user) {
@@ -54,22 +55,17 @@ app.get("/api/whois", function (req,res) {
     }
 });
 
+//creates a new user - can use without authentication
 app.post("/api/createUser", function (req, res) {
-    //see if user exists
-    var doesUserAlreadyExist;
+    //check to see if user already exists - if not add, if so send message to front end
     db.collection("users").findOne({
         username: req.body.username
     }, function (err, user) {
         if (err) {
             return console.log(err);
         }
-        if (user) {
-            doesUserAlreadyExist = true;
-        }else {
-            doesUserAlreadyExist = false;
-        }
-
-        if (!doesUserAlreadyExist) {
+        //if user is null, they do not exist and should be added
+        if (!user) {
             //create the user's session'
             db.collection("users").insertOne({
                 username: req.body.username,
@@ -86,12 +82,14 @@ app.post("/api/createUser", function (req, res) {
                 res.send("User account successfully created");
             })
         } else {
+            //send message that user already exists if database returns a result
             res.status(200);
             res.send("User already exists. Please try a different username")
         }
     })
 })
 
+//Login a user
 app.post("/api/login", function (req, res) {
     console.log("Hit Login Endpoint");
     //look up user in db and see if information matches
@@ -104,8 +102,8 @@ app.post("/api/login", function (req, res) {
             res.status(500);
             res.send("500 - Internal Server Error");
         }
+        //if the user credentials match a user in db, store user information (minus pw) in session
         if (data) {
-        
             //log in session
             req.session.user = {
                 _id: data._id,
@@ -115,30 +113,26 @@ app.post("/api/login", function (req, res) {
             res.status(200);
             res.send("success");
         } else {
+            //if there is no match in db send message to front end
             res.status(200);
             res.send("Username or password is invalid");
         }
     })
 });
 
+//Serve up any content in the public folder - requires authentication
 app.use(isUserAuthenticated, express.static("public"));
-//app.use(express.static("public"));
-//app.use(isUserAuthenticated, express.static("private"));
 
-
-//QUESTION: How to prevent cross site scripting?
-
+//Accept chat from frontend and save to db - requires authentication
 app.post("/api/sendChat", isUserAuthenticated, function (req, res) {
-    //add new chat to global chat
     var newChat = req.body.chat;
-    //QUESTION: adding the newline character does not create a new line in the html
-    //save chat to db
+
     var chat = {
         username: req.session.user.username,
         content: req.body.chat,
         timeStamp: Date()
     };
-
+    //save chat to db
     db.collection("chats").insertOne(chat, function (err) {
         if (err) {
             console.log(err);
@@ -150,8 +144,8 @@ app.post("/api/sendChat", isUserAuthenticated, function (req, res) {
     res.send(chat);
 });
 
+//Gets all chats - requires authentication
 app.get("/api/getAllChats", isUserAuthenticated, function (req, res) {
-    console.log("got here");
     db.collection("chats").find({}).toArray(function (err,data) {
         if (err) {
             console.log(err);
@@ -160,30 +154,29 @@ app.get("/api/getAllChats", isUserAuthenticated, function (req, res) {
         res.send(data);
     });
 })
-//set up 404 route
 
+//404 route
 app.use(function (req, res, next) {
     console.log(`404 page not found for ${req}`);
     res.status = 404;
     res.send("404 Error - resource not found");
 })
 
-//set up 500 route
-
+//500 route
 app.use(function (err, req, res, next) {
     console.log(err);
     res.status = 500;
     res.send("500 Internal Server Error ");
 });
 
-//setup port
-
+//Start server listening on port
 function startListening() {
     app.listen(PORT, function () {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
+//Check to see if user is authenticated - if not redirect to login page
  function isUserAuthenticated(req, res, next) {
     console.log("Authentication Check");
 
